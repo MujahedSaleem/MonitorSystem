@@ -1,0 +1,67 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using MonitorSystem.Entity
+@using MonitorSystem.Service
+@implements IDisposable
+@inject IPrintService< Movement> PrintService
+
+<Modal @ref="modalRef">
+    <ModalBackdrop  />
+
+    <ModalContent IsCentered="true">
+        <ModalHeader>
+            <ModalTitle>Ask for print</ModalTitle>
+            <CloseButton Clicked="@HideModal"/>
+        </ModalHeader>
+        <ModalBody>
+            <h2>Do you want Print this Movments?</h2>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@HideModal">Close</Button>
+            <Button Color="Color.Primary" Clicked="@Print">Print</Button>
+        </ModalFooter>
+    </ModalContent>
+
+
+
+</Modal>
+
+@code {
+
+    [Parameter]
+    public EventCallback Close { get; set; }
+    [Parameter]
+    public Movement SelectedMovement { get; set; }
+
+
+
+
+
+    private Modal modalRef;
+
+    public void ShowModal()
+    {
+        modalRef.Show();
+    }
+
+    private void HideModal()
+    {
+        modalRef.Hide();
+        Close.InvokeAsync().Wait();
+
+    }
+
+    public void Dispose()
+    {
+        modalRef?.Dispose();
+    }
+
+
+    public void Print()
+    {
+        PrintService.Print(new List<Movement>(){ SelectedMovement });
+        Close.InvokeAsync().Wait();
+        modalRef.Hide();
+
+    }
+
+}

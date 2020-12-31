@@ -1,0 +1,66 @@
+﻿@page "/Projects"
+@page "/Projects/{guid}"
+
+@using MonitorSystem.Entity
+@inject IToastService toastService
+@inject Lazy<IGenericService<Project>> ProjectService
+@inject  Lazy<IGenericService<Contractor>> ContractorService
+
+<div class="flex-row">
+    <AddProject @ref="AddProject" SelectedContractor="SelectedContractor" AddNewProject="@Save" />
+
+</div>
+<div>
+    <ProjectsGrid contractorId="id" @ref="projectsGrid" />
+</div>
+<div>
+</div>
+@code
+{
+
+    public ProjectsGrid projectsGrid { get; set; }
+    public AddProject AddProject { get; set; }
+    [Parameter]
+    public string guid { get; set; }
+    public Guid? id { get; set; }
+    private Contractor SelectedContractor { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+
+
+        if (!string.IsNullOrEmpty(guid))
+        {
+            id = Guid.Parse(guid);
+            SelectedContractor = await ContractorService.Value.GetById(id.Value);
+        }
+        else
+        {
+            id = null;
+        }
+
+    }
+
+    private void Save(Project project)
+    {
+        try
+        {
+            if (ProjectService.Value.Add(project))
+            {
+                toastService.ShowSuccess($"Added {project.ProjectName}");
+                projectsGrid.Change();
+            }
+            else
+                toastService.ShowError($"Something went wrong while adding {project.ProjectName}. try again");
+            AddProject.Dispose();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+
+        }
+
+
+    }
+
+}

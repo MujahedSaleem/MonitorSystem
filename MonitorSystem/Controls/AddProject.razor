@@ -1,0 +1,114 @@
+﻿@using MonitorSystem.Entity
+@using Microsoft.AspNetCore.Identity
+@using Blazorise.Utils
+@implements IDisposable
+@inject UserManager<IdentityUser> UserManager
+@inject Lazy<IProjectService> ProjectService
+
+<div class="mb-5">
+    <Button Color="Color.Primary" Clicked="@ShowModal">New פרויקט </Button>
+
+</div>
+<Modal @ref="modalRef">
+    <ModalBackdrop  />
+
+    <ModalContent IsCentered="true">
+        <ModalHeader>
+            <ModalTitle>Add פרויקט </ModalTitle>
+            <CloseButton Clicked="@HideModal"/>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>פרויקט  Name</FieldLabel>
+                <TextEdit  TextChanged="(r) =>newProject.ProjectName=r" Text="@newProject.ProjectName"></TextEdit>
+
+
+            </Field>
+            <Field>
+                <FieldLabel>ספק/לקוח</FieldLabel>
+                <ContractorAutoComplete Disabled="SelectedContractor != null" SelectedContractor="SelectedContractor" @ref="ContractorAutoComplete" Contractor="@Set"/>
+            </Field>
+            <Field>
+                <FieldLabel>מס' חוזה </FieldLabel>
+                <TextEdit  TextChanged="(r) =>newProject.Reference=r" Text="@newProject.Reference"></TextEdit>
+
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@HideModal">Close</Button>
+            <Button Color="Color.Primary" Disabled="IsDisabled" Clicked="@Save">Save Changes</Button>
+        </ModalFooter>
+    </ModalContent>
+
+
+
+</Modal>
+
+@code {
+    public bool IsDisabled => newProject.ProjectName == null || newProject.Reference == null && (newProject.ContractorId == Guid.Empty|| SelectedContractor==null);
+
+    public bool IsValidUser { get; set; } = true;
+    public Project newProject = new Project();
+    [Parameter]
+    public EventCallback<Project> AddNewProject { get; set; }
+    [Parameter]
+    public Contractor SelectedContractor { get; set; }
+
+    public ContractorAutoComplete ContractorAutoComplete { get; set; }
+    private Modal modalRef;
+
+    private void ShowModal()
+    {
+        modalRef.Show();
+    }
+
+
+
+    private void Set(Contractor c)
+    {
+        newProject.ContractorId = c.ID;
+    }
+
+    private void IsValid(ValidatorEventArgs e)
+    {
+        switch (e.Status)
+        {
+            case ValidationStatus.None:
+                {
+                    if (ProjectService.Value.ValidName(Convert.ToString(e.Value)))
+                        e.Status = ValidationStatus.Error;
+                    break;
+                }
+            case ValidationStatus.Error when ProjectService.Value.ValidName(Convert.ToString(e.Value)):
+                e.Status = ValidationStatus.Error;
+                break;
+            case ValidationStatus.Error:
+                e.Status = ValidationStatus.Success;
+                break;
+        }
+    }
+    private void HideModal()
+    {
+        modalRef.Hide();
+        Dispose();
+    }
+
+    public void Dispose()
+    {
+        ProjectService.Value?.Dispose();
+        UserManager?.Dispose();
+        newProject=new Project();
+        this.ContractorAutoComplete?.Dispose();
+    }
+
+
+    public async Task  Save()
+    {
+        if (SelectedContractor != null)
+            newProject.ContractorId = SelectedContractor.ID;
+        modalRef.Hide();
+        await AddNewProject.InvokeAsync(newProject).ConfigureAwait(false);
+
+    }
+
+}

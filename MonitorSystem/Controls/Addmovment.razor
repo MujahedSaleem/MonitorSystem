@@ -1,0 +1,235 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using MonitorSystem.Entity
+@using MonitorSystem.Service
+@using System.Globalization
+@implements IDisposable
+@inject IContractorService ContractorService
+<div class="mb-5">
+    <Button Class="button" Color="Color.Primary" Clicked="@ShowModal">Add Movement</Button>
+
+</div>
+
+<Modal @ref="modalRef">
+    <ModalBackdrop  />
+        <ModalContent IsCentered="true">
+            <ModalHeader>
+                <ModalTitle>Add Movement</ModalTitle>
+                <CloseButton Clicked="@HideModal" />
+            </ModalHeader>
+            <ModalBody>
+                <Row>
+                    <Column Class="col-md-6">
+                        <Field>
+                            <FieldLabel>ספק/לקוח</FieldLabel>
+                            <ContractorAutoComplete Disabled="SelectedContractor != null" SelectedContractor="SelectedContractor" Contractor="(c) => newMovement.ContractorId = c.ID" @ref="@contractorAuto" />
+                        </Field>
+                    </Column>
+
+                    <Column Class="col-md-6">
+                        <Field>
+                            <FieldLabel>פרויקט </FieldLabel>
+                            <ProjectAutoComplete Disabled="SelectedProject != null" SelectedProject="SelectedProject" SearchedProject="@(a => newMovement.Reference=((Project)a).Reference)" @ref="@projectAuto" ProjectId="(id) => newMovement.ProjectId = id" />
+                        </Field>
+                    </Column>
+                </Row>
+                <Row>
+                    <Column Class="col-md-6">
+                        <Field>
+                            <FieldLabel>תעודת שקילה מספר </FieldLabel>
+                            <NumericEdit TValue="int" ValueChanged="(r) => { newMovement.CertificateNumber = (int) r; }" Value="@newMovement.CertificateNumber" Placeholder="Enter Certification Number..." />
+
+                        </Field>
+                    </Column>
+                    <Column Class="col-md-6">
+                        <Field>
+                            <FieldLabel>תאריך </FieldLabel>
+                            <TextEdit Pattern="(0[1-9]|1[0-9]|2[0-9]|3[01])/(0[1-9]|1[012])/[0-9]{4}" Text="@((newMovement.MovementDate).ToString("dd/MM/yyyy"))" TextChanged="@((e) => {var x = DateTime.Parse(e,CultureInfo.CreateSpecificCulture("fr-FR"));newMovement.MovementDate = x; })"/>
+
+
+                        </Field>
+                    </Column>
+                </Row>
+                <Row>
+                    <Column Class="col-md-4">
+                        <Field>
+                            <FieldLabel>מס' חוזה </FieldLabel>
+                            <TextEdit  Text="@newMovement.Reference" Disabled="true"></TextEdit>
+
+                        </Field>
+                    </Column>
+                    <Column Class="col-md-4">
+
+                        <Field>
+                            <FieldLabel>שם המוביל </FieldLabel>
+                            <TextEdit  TextChanged="(r) =>newMovement.CompanyName=r" Text="@newMovement.CompanyName"></TextEdit>
+
+                        </Field>
+                    </Column>
+                    <Column Class="col-md-4">
+
+                        <Field>
+                            <FieldLabel>מס' רכב </FieldLabel>
+                            <TextEdit  TextChanged="(r) =>newMovement.VehicleNo=r" Text="@newMovement.VehicleNo"></TextEdit>
+
+                        </Field>
+                    </Column>
+                </Row>
+
+                <Row>
+                    <Column Class="col-md-6">
+                        <Field>
+                            <FieldLabel>שם הנהג </FieldLabel>
+                            <TextEdit  TextChanged="(r) =>newMovement.DriverName=r" Text="@newMovement.DriverName"></TextEdit>
+
+                        </Field>
+                    </Column>
+
+                    <Column Class="col-md-6">
+
+                        <Field>
+                            <FieldLabel>יעד </FieldLabel>
+                            <TextEdit Disabled="true" Text="@newMovement.Place" ></TextEdit>
+
+                        </Field>
+                    </Column>
+                </Row>
+
+                <Row>
+                    <Column Class="col-md-6">
+                        <Field>
+                            <FieldLabel>סוג חומר </FieldLabel>
+                            <TextEdit   Disabled="true" Text="@newMovement.MaterialTypes"></TextEdit>
+
+                        </Field>
+                    </Column>
+
+                    <Column Class="col-md-6">
+
+                        <Field>
+                            <FieldLabel>ברוטו</FieldLabel>
+                            <NumericEdit TValue="int" @bind-value="@newMovement.Total"></NumericEdit>
+
+                        </Field>
+                    </Column>
+                </Row>
+
+                <Row>
+                    <Column Class="col-md-6">
+                        <Field>
+                            <FieldLabel>טרה </FieldLabel>
+                            <NumericEdit TValue="int" @bind-value="@newMovement.AddedValue"></NumericEdit>
+                            
+                        </Field>
+                    </Column>
+
+                    <Column Class="col-md-6">
+
+                        <Field>
+                            <FieldLabel>נטו </FieldLabel>
+                            <NumericEdit Disabled="true" TValue="int" Value="@(newMovement.Total - newMovement.AddedValue)" />
+                        </Field>
+                    </Column>
+                </Row>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary" Clicked="@HideModal">Close</Button>
+                <Button Color="Color.Primary"  Clicked="@Save">Save Changes</Button>
+            </ModalFooter>
+        </ModalContent>
+
+
+
+</Modal>
+<AskPrint @ref="printModel" SelectedMovement="newMovement" Close="HideModal"/>
+@code {
+
+    public bool IsValidUser { get; set; } = true;
+    private Movement newMovement { get; set; }
+
+    [Parameter]
+    public EventCallback<Movement> AddNewMovement { get; set; }
+    [Parameter]
+    public Contractor SelectedContractor { get; set; }
+    [Parameter]
+    public Project SelectedProject { get; set; }
+    private ProjectAutoComplete projectAuto { get; set; }
+    private ContractorAutoComplete contractorAuto { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        newMovement = new Movement {Place = "עטרות",MaterialTypes = "חומר בניין"};
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (SelectedProject != null)
+        {
+            newMovement.Reference = SelectedProject.Reference;
+            newMovement.Project = SelectedProject;
+
+        }
+        if (SelectedContractor != null)
+        {
+            newMovement.Contractor = SelectedContractor;
+
+        }
+        base.OnParametersSet();
+    }
+
+    private Modal modalRef;
+    private AskPrint printModel;
+
+    private void ShowModal()
+    {
+        modalRef.Show();
+    }
+
+    private void HideModal()
+    {
+        modalRef.Hide();
+        Dispose();
+    }
+
+    public void Dispose()
+    {
+        modalRef?.Dispose();
+        ContractorService?.Dispose();
+        contractorAuto?.Dispose();
+        projectAuto?.Dispose();
+        newMovement = new Movement {Place = "עטרות",MaterialTypes = "חומר בניין"};
+    }
+
+    public void Save()
+    {
+        if (SelectedContractor != null)
+            newMovement.ContractorId = SelectedContractor.ID;
+        if (SelectedProject != null)
+        {
+            newMovement.ProjectId = SelectedProject.ID;
+            newMovement.Reference = SelectedProject.Reference;
+
+        }
+        newMovement.Project = null;
+        newMovement.Contractor = null;
+
+        newMovement.Net = newMovement.Total-newMovement.AddedValue;
+        AddNewMovement.InvokeAsync(newMovement).Wait();
+        if (SelectedProject != null)
+        {
+            newMovement.Reference = SelectedProject.Reference;
+            newMovement.Project = SelectedProject;
+
+        }
+        if (SelectedContractor != null)
+        {
+            newMovement.Contractor = SelectedContractor;
+
+        }
+        printModel.ShowModal();
+
+
+
+    }
+
+}

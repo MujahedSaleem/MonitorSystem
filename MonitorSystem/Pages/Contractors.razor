@@ -1,0 +1,46 @@
+﻿@page "/Contractor"
+@using MonitorSystem.Entity
+@using System.Threading
+@inject IToastService toastService
+@inject Lazy<IGenericService<Contractor>> ContractorService
+<div class="flex-row">
+    <AddContractor AddNewContractor="Save" @ref="AddNewContractor"></AddContractor>
+</div>
+<div>
+    <ContractorGrid  @ref="contractorGrid"></ContractorGrid>
+</div>
+@code
+{
+    public ContractorGrid contractorGrid { get; set; }
+    public AddContractor AddNewContractor { get; set; }
+
+    private Task Save(Entity.Contractor newContractor)
+    {
+        try
+        {
+
+
+            if (ContractorService.Value.Add(newContractor))
+            {
+                toastService.ShowSuccess($"Added {newContractor.Name}");
+                contractorGrid.Change();
+                AddNewContractor.Dispose();
+                StateHasChanged();
+                return Task.CompletedTask;
+;
+            }
+            else
+                toastService.ShowError($"Something went wrong while adding {newContractor.Name}. try again");
+            AddNewContractor.Dispose();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        return Task.FromCanceled(CancellationToken.None);
+
+
+    }
+
+}

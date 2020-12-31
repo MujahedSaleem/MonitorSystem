@@ -1,0 +1,74 @@
+﻿@using MonitorSystem.Entity
+@inherits ProjectBase
+
+
+
+
+<DataGrid TItem="Project"
+          TotalItems="totalCount"
+          SortMode="DataGridSortMode.Multiple"
+          Sortable="true"
+          UseInternalEditing="true"
+          Data="@dirtyprojects"
+          Bordered="true"
+          ShowPager="true"
+          Editable="true"
+          ReadData="@OnReadData"
+          ShowPageSizes="true"
+          EditMode="DataGridEditMode.Popup"
+          Filterable="true"
+          RowUpdating="@updateRow"
+          FilterMethod="DataGridFilterMethod.StartsWith">
+    <FirstPageButtonTemplate>
+        ראשון
+
+    </FirstPageButtonTemplate>
+    <LastPageButtonTemplate>
+        אחרון
+
+    </LastPageButtonTemplate>
+    <NextPageButtonTemplate>
+        הַבָּא
+
+    </NextPageButtonTemplate>
+    <PreviousPageButtonTemplate>
+        קודם
+
+    </PreviousPageButtonTemplate>
+    
+    <DataGridColumns>
+    <DataGridColumn Editable="true" TItem="Project" Field="@nameof(Project.ProjectName)" Caption="@nameof(Project.ProjectName)">
+        <EditTemplate>
+
+            <TextEdit Text="@((string) (((CellEditContext) context).CellValue))" TextChanged="@(v => ((CellEditContext) context).CellValue = v)"/>
+        </EditTemplate>
+    </DataGridColumn>
+    <DataGridColumn Editable="true" TItem="Project" Field="@nameof(Project.Reference)" Caption="@nameof(Project.Reference)">
+        <EditTemplate>
+
+            <TextEdit Text="@((string) (((CellEditContext) context).CellValue))" TextChanged="@(v => ((CellEditContext) context).CellValue = v)"/>
+        </EditTemplate>
+    </DataGridColumn>
+    <DataGridColumn Editable="true" TItem="Project" Field="@nameof(Project.Contractor)"Caption="ספק/לקוח">
+        <DisplayTemplate>
+            @($"{(context as Project)?.Contractor.Name}")
+        </DisplayTemplate>
+        <EditTemplate>
+
+            <ContractorAutoComplete SelectedContractor="@((Contractor) (((CellEditContext) context).CellValue))" Contractor="@((c) => context.CellValue = ((object) c))"/>
+
+        </EditTemplate>
+    </DataGridColumn>
+    <DataGridColumn Editable="false" TItem="Entity.Project" Field="@nameof(Entity.Project.Movements)" Caption="@nameof(Entity.Movement)">
+        <DisplayTemplate>
+            <Button Color="Color.Primary" Clicked="() => { NavigateTo((context as Project).ID); }">Movments</Button>
+
+        </DisplayTemplate>
+    </DataGridColumn>
+    <DataGridCommandColumn Editable="true" TItem="Project" NewCommandAllowed="false" Caption="Actions">
+        <DeleteCommandTemplate >
+            <Button Disabled="!activeButton" Color="Color.Danger" Clicked="async () => { await Removeitem(context).ConfigureAwait(false); }">Delete</Button>
+        </DeleteCommandTemplate>
+    </DataGridCommandColumn>
+        </DataGridColumns>
+</DataGrid>

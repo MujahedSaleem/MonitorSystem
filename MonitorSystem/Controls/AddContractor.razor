@@ -1,0 +1,109 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using MonitorSystem.Entity
+@using MonitorSystem.Service
+@implements IDisposable
+@inject Lazy<IContractorService> ContractorService
+<div class="mb-5">
+    <Button Class="button" Color="Color.Primary" Clicked="@ShowModal">Add ספק/לקוח</Button>
+
+</div>
+
+<Modal @ref="modalRef">
+    <ModalBackdrop  />
+
+    <ModalContent IsCentered="true">
+        <ModalHeader>
+            <ModalTitle>Add Contractor</ModalTitle>
+            <CloseButton Clicked="@HideModal"/>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>ספק/לקוח Name</FieldLabel>
+                <TextEdit  TextChanged="(r) =>newContractors.Name=r" Text="@newContractors.Name"></TextEdit>
+
+            </Field>
+            <Field>
+                <FieldLabel>Phone Number</FieldLabel>
+                <TextEdit TextChanged="(r) =>newContractors.Phone=r " Text="@newContractors.Phone" Placeholder="Phone Number..."/>
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@HideModal">Close</Button>
+            <Button Color="Color.Primary" Disabled="IsDisabled" Clicked="@Save">Save Changes</Button>
+        </ModalFooter>
+    </ModalContent>
+
+
+
+</Modal>
+
+@code {
+    public bool IsValidUser { get; set; } = true;
+    private Contractor newContractors { get; set; }
+
+    public bool IsDisabled => newContractors.Name == null || newContractors.Phone == null;
+
+    [Parameter]
+    public EventCallback<Contractor> AddNewContractor { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        newContractors = new Contractor();
+    }
+
+    private void IsValid(ValidatorEventArgs e)
+    {
+        newContractors.Name = Convert.ToString(e.Value);
+        IsValidUser = ContractorService.Value.ValidName(newContractors.Name);
+
+        switch (e.Status)
+        {
+            case ValidationStatus.None:
+                {
+                    if (!IsValidUser)
+                        e.Status = ValidationStatus.Error;
+                    break;
+                }
+            case ValidationStatus.Error when !IsValidUser:
+                e.Status = ValidationStatus.Error;
+                break;
+            case ValidationStatus.Error when IsValidUser:
+                e.Status = ValidationStatus.Success;
+                break;
+
+            default:
+                e.Status = ValidationStatus.None;
+                break;
+
+        }
+    }
+
+    private Modal modalRef;
+
+    private void ShowModal()
+    {
+        modalRef.Show();
+    }
+
+    private void HideModal()
+    {
+        modalRef.Hide();
+        Dispose();
+    }
+
+    public void Dispose()
+    {
+        modalRef?.Dispose();
+        ContractorService.Value?.Dispose();
+        newContractors = new Contractor();
+    }
+
+    public void  Save()
+    {
+        AddNewContractor.InvokeAsync(newContractors).Wait();
+        modalRef.Hide();
+
+    }
+
+}

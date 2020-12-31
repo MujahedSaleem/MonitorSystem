@@ -1,0 +1,142 @@
+﻿@using MonitorSystem.Entity
+@using System.Globalization
+@inherits MovementBase
+<DataGrid TItem="Movement"
+          TotalItems="totalCount"
+          SortMode="DataGridSortMode.Multiple"
+          Sortable ="true"
+          UseInternalEditing="true"
+          Data="@dirtymovments"
+          Bordered="true"
+          ShowPager="true"
+          Editable="true"
+          ShowPageSizes="true"
+          EditMode="DataGridEditMode.Popup"
+          ReadData="@OnReadData"
+          Filterable="true"
+          RowUpdating="(item) => updateRow((item as CancellableRowChange<Movement, Dictionary<string, object>>))"
+          FilterMethod="DataGridFilterMethod.StartsWith">
+    <PageButtonTemplate>
+
+    </PageButtonTemplate>
+    <FirstPageButtonTemplate>
+        ראשון
+
+    </FirstPageButtonTemplate>
+    <LastPageButtonTemplate>
+        אחרון
+
+    </LastPageButtonTemplate>
+    <NextPageButtonTemplate>
+        הַבָּא
+
+    </NextPageButtonTemplate>
+    <PreviousPageButtonTemplate>
+        קודם
+
+    </PreviousPageButtonTemplate>
+    
+    <DataGridColumns>
+        <DataGridColumn Editable="false" TItem="Movement" Field="@nameof(Movement.ID)" Caption="#" Filterable="false">
+            <DisplayTemplate>
+                <Check TValue="bool" CheckedChanged="(v) => { SelectItemToPrint(context, v); }"></Check>
+            </DisplayTemplate>
+        </DataGridColumn>
+
+        <DataGridColumn Editable="false" TItem="Movement" Field="@nameof(Movement.Contractor)" Caption="ספק/לקוח">
+
+            <DisplayTemplate>
+                @($"{(context as Movement)?.Contractor.Name}")
+            </DisplayTemplate>
+            <EditTemplate>
+
+                <ContractorAutoComplete SelectedContractor="@((Contractor) (((CellEditContext) context).CellValue))"/>
+
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="false" TItem="Movement" Field="@nameof(Movement.Project)" Caption="פרויקט ">
+            <DisplayTemplate>
+                @($"{(context as Movement)?.Project.ProjectName}")
+            </DisplayTemplate>
+            <EditTemplate>
+
+                <ProjectAutoComplete SelectedProject="(Project) context.CellValue"/>
+
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="true" TItem="Movement" Field="@nameof(Movement.CertificateNumber)" Caption="תעודת שקילה מספר ">
+            <EditTemplate>
+                <NumericEdit TValue="int" ValueChanged="(r) => context.CellValue = (object) r" Value="@((int) ((CellEditContext) context).CellValue)" Placeholder="Enter CertificateNumber Number..."/>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="true" TItem="Movement" Field="@nameof(Movement.MovementDate)" Caption="תאריך ">
+            <DisplayTemplate>
+                @($"{context.MovementDate:dd/MM/yyy}")
+            </DisplayTemplate>
+            <EditTemplate>
+                <TextEdit Pattern="(0[1-9]|1[0-9]|2[0-9]|3[01])/(0[1-9]|1[012])/[0-9]{4}" Text="@(((DateTime) context.CellValue).ToString("dd/MM/yyyy"))"
+                          TextChanged="@((e) => {var x = DateTime.Parse(e, CultureInfo.CreateSpecificCulture("fr-FR"));context.CellValue = x; })"/>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="true" TItem="Movement" Field="@nameof(Movement.Reference)" Caption="מס' חוזה ">
+            <EditTemplate>
+                <TextEdit Disabled="true" Text="@((string) (((CellEditContext) context).CellValue))"/>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="true" TItem="Movement" Field="@nameof(Movement.CompanyName)" Caption="שם המוביל">
+            <EditTemplate>
+                <TextEdit Text="@((string) (((CellEditContext) context).CellValue))" TextChanged="@(v => ((CellEditContext) context).CellValue = v)" />
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="true" TItem="Movement" Field="@nameof(Movement.VehicleNo)" Caption="מס' רכב ">
+            <EditTemplate>
+
+                <TextEdit Text="@((string) (((CellEditContext) context).CellValue))" TextChanged="@(v => ((CellEditContext) context).CellValue = v)"/>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="true" TItem="Movement" Field="@nameof(Movement.DriverName)" Caption="שם הנהג ">
+            <EditTemplate>
+
+                <TextEdit Text="@((string) (((CellEditContext) context).CellValue))" TextChanged="@(v => ((CellEditContext) context).CellValue = v)"/>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="true" TItem="Movement" Field="@nameof(Movement.Place)" Caption="יעד ">
+            <EditTemplate>
+
+                <TextEdit Disabled="true" Text="@((string) (((CellEditContext) context).CellValue))" />
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="true" TItem="Movement" Field="@nameof(Movement.MaterialTypes)" Caption="סוג חומר ">
+            <EditTemplate>
+
+                <TextEdit Disabled="true" Text="@((string) (((CellEditContext) context).CellValue))" TextChanged="@(v => ((CellEditContext) context).CellValue = v)"/>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="true" TItem="Movement" Field="@nameof(Movement.Total)" Caption="ברוטו">
+            <EditTemplate>
+                <NumericEdit TValue="int" ValueChanged="(r) => context.CellValue = (object) r" Value="@((int) ((CellEditContext) context).CellValue)" Placeholder="Enter Total Number..."/>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="true" TItem="Movement" Field="@nameof(Movement.AddedValue)" Caption="טרה ">
+            <EditTemplate>
+                <NumericEdit TValue="int" ValueChanged="(r) => context.CellValue = (object) r" Value="@((int) ((CellEditContext) context).CellValue)" Placeholder="Enter Added Value..."/>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="true" TItem="Movement" Field="@nameof(Movement.Net)" Caption="נטו ">
+            <EditTemplate>
+                <NumericEdit TValue="int" ValueChanged="(r) => context.CellValue = (object) r" Value="@((int) ((CellEditContext) context).CellValue)" Placeholder="Enter Net Value..."/>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn Editable="false" TItem="Movement" Field="@nameof(Movement.ID)" Caption="" Filterable="false">
+            <DisplayTemplate>
+                <Button Color="Color.Primary" Clicked="() => { Print(context); }">Print</Button>
+            </DisplayTemplate>
+        </DataGridColumn>
+        <DataGridCommandColumn Editable="true" TItem="Movement" NewCommandAllowed="false" Caption="Actions">
+            <DeleteCommandTemplate>
+                <Button Disabled="!activeButton" Color="Color.Danger" Clicked="async () => { await Removeitem(context).ConfigureAwait(false); }">Delete</Button>
+            </DeleteCommandTemplate>
+        </DataGridCommandColumn>
+    </DataGridColumns>
+
+</DataGrid>

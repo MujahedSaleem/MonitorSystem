@@ -1,0 +1,63 @@
+﻿@using MonitorSystem.Entity
+@inherits ContractorBase
+
+<DataGrid TItem="Contractor"
+          Data="@dirtyContractors"
+          Bordered="true"
+          ShowPager="true"
+          ReadData="@OnReadData"
+          ShowPageSizes="true"
+          TotalItems="totalCount"
+          Filterable="true"
+          Editable="true"
+          EditMode="@DataGridEditMode.Popup"
+          RowUpdating="@updateRow"
+          SortMode="DataGridSortMode.Multiple"
+          Sortable ="true"
+          UseInternalEditing="true"
+          FilterMethod="DataGridFilterMethod.StartsWith">
+    <FirstPageButtonTemplate>
+        ראשון
+
+    </FirstPageButtonTemplate>
+    <LastPageButtonTemplate>
+        אחרון
+
+    </LastPageButtonTemplate>
+    <NextPageButtonTemplate>
+        הַבָּא
+
+    </NextPageButtonTemplate>
+    <PreviousPageButtonTemplate>
+        קודם
+
+    </PreviousPageButtonTemplate>
+    
+    <DataGridColumns>
+    <DataGridColumn Sortable="true" Editable="true" TItem="Entity.Contractor" Field="@nameof(Entity.Contractor.Name)" Caption="@nameof(Entity.Contractor.Name)">
+        <EditTemplate>
+            <TextEdit Text="@((string) (((CellEditContext) context).CellValue))" TextChanged="@(v => ((CellEditContext) context).CellValue = v)" />
+        </EditTemplate>
+    </DataGridColumn>
+    <DataGridColumn Editable="true" TItem="Entity.Contractor" Field="@nameof(Entity.Contractor.Phone)" Caption="@nameof(Entity.Contractor.Phone)">
+        <EditTemplate>
+
+            <TextEdit Text="@((string) (((CellEditContext) context).CellValue))" TextChanged="@(v => ((CellEditContext) context).CellValue = v)" />
+        </EditTemplate>
+    </DataGridColumn>    
+    <DataGridColumn Editable="false" TItem="Entity.Contractor" Field="@nameof(Entity.Contractor.Movements)" Caption="@nameof(Entity.Movement)">
+        <DisplayTemplate>
+            <Button Color="Color.Primary" Clicked=" () => { NavigateTo((context as Contractor).ID,'M'); }">Movments</Button>
+            <Button Color="Color.Primary" Clicked=" () => { NavigateTo((context as Contractor).ID,'P'); }">פרויקט </Button>
+
+        </DisplayTemplate>
+    </DataGridColumn>
+    <DataGridCommandColumn Editable="true" TItem="Entity.Contractor" NewCommandAllowed="false" Caption="Actions">
+        <DeleteCommandTemplate>
+            <Button Disabled="!activeButton" Color="Color.Danger" Clicked="async () => { await Removeitem(context).ConfigureAwait(false); }">Delete</Button>
+        </DeleteCommandTemplate>
+  
+    </DataGridCommandColumn>
+
+        </DataGridColumns>
+</DataGrid>

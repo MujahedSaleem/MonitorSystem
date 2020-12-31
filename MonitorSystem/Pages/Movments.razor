@@ -1,0 +1,126 @@
+﻿@page "/Movements"
+@page "/Movements/{guid}/"
+@page "/Movements/{guid}/{type}"
+@using MonitorSystem.Entity
+@inject IToastService toastService
+@inject IGenericService<Movement> service
+@inject Lazy<IGenericService<Contractor>> ContractorService
+@inject Lazy<IGenericService<Project>> ProjectService
+@inject Lazy<IPrintService<Movement>> printService
+@inject Lazy<IExcelService> excelService
+@inject IJSRuntime JsRuntime 
+
+    <div class="row">
+        <div class="col-2">
+            <Addmovment SelectedProject="@selectedProject" SelectedContractor="@selectedContractor" AddNewMovement="Save" @ref="AddNewMovement" />
+        </div>
+        <div class="col-2 ">
+            <Button Class="button" Color="Color.Primary" Clicked="@PrintSelected">Print Selected</Button>
+
+        </div>
+        <div class="col-2 ">
+            <Button Class="button" Color="Color.Primary" Clicked="@PrintAll">Print All</Button>
+
+        </div>
+        <div class="col-2 ">
+                <Button Class="button" Color="Color.Primary" Clicked="@Export">Export</Button>
+        </div>
+
+    </div>
+    <div>
+        <MovemoentGrid FilterToId="@gid" @ref="movementIdGrid" />
+    </div>
+    <div>
+    </div>
+    @code
+{
+        public Addmovment AddNewMovement { get; set; }
+        public MovemoentGrid movementIdGrid { get; set; }
+        private Contractor selectedContractor { get; set; }
+        private Project selectedProject { get; set; }
+        [Parameter]
+        public string guid { get; set; }
+        [Parameter]
+        public string type { get; set; }
+
+        private Guid? gid;
+        protected override async Task OnParametersSetAsync()
+        {
+            base.OnParametersSet();
+            if (string.IsNullOrEmpty(guid))
+                gid = null;
+            else
+            {
+                gid = Guid.Parse(guid);
+                if (type == Constant.Parameter.Project)
+                {
+                    selectedProject = await ProjectService.Value.GetById(gid.Value);
+                    selectedContractor = selectedProject.Contractor;
+                    StateHasChanged();
+                }
+                if (type == Constant.Parameter.Contractor)
+                {
+                    selectedContractor = await ContractorService.Value.GetById(gid.Value);
+                }
+            }
+        }
+
+        private void PrintSelected()
+        {
+            if (movementIdGrid.toPrint.Count != 0)
+                printService.Value.Print(movementIdGrid.toPrint);
+            else
+                 JsRuntime.Alert("No Item to print");
+        }
+        private void PrintAll()
+        {
+            if (movementIdGrid.dirtymovments.Count != 0)
+                printService.Value.Print(movementIdGrid.dirtymovments);
+            else
+                 JsRuntime.Alert("No Item to print");
+        }
+
+        private void Export()
+        {  if (selectedProject == null)
+        {
+            JsRuntime.Alert("Go to project and select Project To use this feature");
+            return;
+        }
+            if (selectedProject.Movements.Count != 0)
+            {
+              
+
+                excelService.Value.Export(selectedProject.Movements.ToList());
+            }
+            else
+                JsRuntime.Alert("No Item to export");
+        }
+
+        private void Save(Movement newMovement)
+        {
+            try
+            {
+                if (newMovement == null)
+                    return;
+
+                if (service.Add(newMovement))
+                {
+                    toastService.ShowSuccess($"Added new Movemont ");
+                    movementIdGrid.Change();
+                    StateHasChanged();
+
+                }
+                else
+                    toastService.ShowError($"Something went wrong while adding Movement to project {newMovement.Project.ProjectName}. try again");
+                AddNewMovement.Dispose();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+
+            }
+
+
+        }
+
+    }
