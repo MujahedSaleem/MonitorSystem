@@ -120,10 +120,10 @@ namespace MonitorSystem.Controls
             switch (x)
             {
                 case 'M':
-                    NavigationManager.NavigateTo($"/manager/Movements/{guid}/{Constant.Parameter.Contractor}");
+                    NavigationManager.NavigateTo($"/Movements/{guid}/{Constant.Parameter.Contractor}");
                     break;
                 case 'P':
-                    NavigationManager.NavigateTo($"/manager/Projects/{guid}");
+                    NavigationManager.NavigateTo($"/Projects/{guid}");
                     break;
 
             }

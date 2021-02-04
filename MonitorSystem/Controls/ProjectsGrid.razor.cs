@@ -117,7 +117,7 @@ namespace MonitorSystem.Controls
         }
         public void NavigateTo(Guid guid)
         {
-            NavigationManager.NavigateTo($"/manager/Movements/{guid}/{Constant.Parameter.Project}");
+            NavigationManager.NavigateTo($"/Movements/{guid}/{Constant.Parameter.Project}");
         }
         protected async Task Removeitem(CommandContext<Project> context)
         {

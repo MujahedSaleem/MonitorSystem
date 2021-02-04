@@ -55,6 +55,13 @@ namespace MonitorSystem
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddSignalR(e =>
+
+            {
+
+                e.MaximumReceiveMessageSize = 102400000;
+
+            });
             services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
             services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddBlazoredToast();
@@ -85,7 +92,6 @@ namespace MonitorSystem
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            app.UsePathBase("/manager");
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
@@ -101,14 +107,9 @@ namespace MonitorSystem
             {
                 endpoints.MapControllers();
                 endpoints.MapBlazorHub();
-                endpoints.Map("mangaer/{**slug}", HandleApiFallback);
                 endpoints.MapFallbackToPage("/_Host");
             });
         }
-        private Task HandleApiFallback(HttpContext context)
-        {
-            context.Response.StatusCode = StatusCodes.Status404NotFound;
-            return Task.FromResult(0);
-        }
+       
     }
 }

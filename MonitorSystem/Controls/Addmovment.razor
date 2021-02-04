@@ -158,7 +158,7 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        newMovement = new Movement {Place = "עטרות",MaterialTypes = "חומר בניין"};
+        newMovement = new Movement {Place = "עטרות",MaterialTypes = "פסולת בניין"};
     }
 
     protected override void OnParametersSet()
@@ -197,7 +197,7 @@
         ContractorService?.Dispose();
         contractorAuto?.Dispose();
         projectAuto?.Dispose();
-        newMovement = new Movement {Place = "עטרות",MaterialTypes = "חומר בניין"};
+        newMovement = new Movement {Place = "עטרות",MaterialTypes = "פסולת בניין"};
     }
 
     public void Save()
